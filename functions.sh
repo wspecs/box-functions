@@ -4,6 +4,8 @@
 # -o pipefail: don't ignore errors in the non-last command in a pipeline
 set -euo pipefail
 
+WORKING_DIRECTORY=$(pwd)
+
 function hide_output {
   # This function hides the output of a command unless the command fails
   # and returns a non-zero exit code.
@@ -230,4 +232,9 @@ function install_once() {
   then
     apt-get install $1;
   fi
+}
+
+function goto_working_directory() {
+  # Go to the initial working directory
+  cd $WORKING_DIRECTORY
 }
