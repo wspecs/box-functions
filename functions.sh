@@ -238,3 +238,13 @@ function goto_working_directory() {
   # Go to the initial working directory
   cd $WORKING_DIRECTORY
 }
+
+function add_config() {
+  # Add a config to a file. Override the value if config already exists.
+  config_name=$(echo $1 | sed 's/=.*//')
+  if ! grep -q $config_name "$2"; then
+    echo adding config $1 to $2
+    echo "$1" >> $2
+  fi
+  sed -i "/^$config_name=/c\\$1" $2
+}
