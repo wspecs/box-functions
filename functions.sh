@@ -230,7 +230,7 @@ function install_once() {
   # Install a package if it is not already exists.
   if [ $(dpkg-query -W -f='${Status}' $1 2>/dev/null | grep -c "ok installed") -eq 0 ];
   then
-    apt-get install $1;
+    apt-get install -y $1;
   fi
 }
 
