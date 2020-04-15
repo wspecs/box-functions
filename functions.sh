@@ -248,3 +248,64 @@ function add_config() {
   fi
   sed -i "/^$config_name=/c\\$1" $2
 }
+
+make_bucket() {
+  path=s3://$1
+  if [ ! -z "$(s3cmd ls $path 2>&1 >/dev/null)" ]; then
+    echo creating bucket
+    s3cmd mb $path
+  fi
+}
+
+bucket_has_file() {
+  path="s3://$DO_BUCKET_NAME/$1"
+  s3cmd info $path
+}
+
+create_public_bucket_file() {
+  s3cmd put $1 s3://$DO_BUCKET_NAME/$2 --acl-public
+}
+
+create_secure_bucket_file() {
+  s3cmd put $1 s3://$DO_BUCKET_NAME/$2 --acl-private -e
+}
+
+tarandzip(){
+    echo "\n##### Gathering files #####\n"
+    if tar -czvf $1.tar.gz $2; then
+        echo "\n##### Done gathering files #####\n"
+        return 0
+    else
+        echo "\n##### Failed to gather files #####\n"
+        return 1
+    fi
+}
+
+movetoSpace(){
+    echo "\n##### MOVING TO SPACE #####\n"
+    if s3cmd put $1.tar.gz $2/$1.bak -e --acl-private; then
+        rm -rf $1.tar.gz
+        echo "\n##### Done moving files to s3://"$2" #####\n"
+        return 0
+    else
+        echo "\n##### Failed to move files to the Space #####\n"
+        return 1
+    fi
+}
+
+backup_file() {
+  DATETIME=`date +%Y%m%d%H%M%S`
+  SRC=$1
+  DST=s3://$DO_BUCKET_NAME/backup
+  GIVENNAME=$2-$DATETIME
+  if [ ! -z "$2" ]; then
+    if tarandzip $GIVENNAME $SRC; then
+      movetoSpace $GIVENNAME $DST
+    else
+      showhelp
+    fi
+  else
+    showhelp
+  fi
+}
+
